@@ -45,6 +45,10 @@ For production environments...
 $ npm start
 ```
 
+
+Server Running on https:localhost:5000
+Client Running on https:localhost:3000
+
 ### Server
 
 ![server](server.png)
