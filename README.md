@@ -46,8 +46,8 @@ $ npm start
 ```
 
 
-Server Running on https:localhost:5000
-Client Running on https:localhost:3000
+Server Running on http:localhost:5000/
+Client Running on http:localhost:3000/
 
 ### Server
 
