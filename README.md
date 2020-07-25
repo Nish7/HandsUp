@@ -33,6 +33,8 @@ requires[Node.js](https://nodejs.org/) v4+ to run.
 
     Install the dependencies and devDependencies and start the server.
 
+    - for developement, you need to add google console Oauth client id and key to the config.env
+
 ```sh
 $ git clone https://github.com/Nish7/HandsUp.git
 $ cd HandsUp
