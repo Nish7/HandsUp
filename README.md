@@ -1,13 +1,15 @@
 # Hands Up
-##### Progress: 30 %
 
-    HandsUp is a website based platform where students can approach and interact with the students regarding their doubt and issues facing during the distance learning program initiated by the schools and colleges. 
+##### Progress: 50 %
 
-  - Nowadays, checking on the bulletin and recent affairs of the educational institutes could be a fuss, recent updates and bulletin could easily be accessed using HandsUp portal. 
+    HandsUp is a website based platform where students can approach and interact with the students regarding their doubt and issues facing during the distance learning program initiated by the schools and colleges.
 
-  - Another amazing feature of our website is reinforced learning, there are questions that require HOTs and critical thinking those cannot just be use and throw, using HandsUp, the question can be revisited or reinforced.The solved question is sent back to the user to confirm the clarity of the student, until they are assured about their understanding. 
+- Nowadays, checking on the bulletin and recent affairs of the educational institutes could be a fuss, recent updates and bulletin could easily be accessed using HandsUp portal.
 
-#### Why: 
+- Another amazing feature of our website is reinforced learning, there are questions that require HOTs and critical thinking those cannot just be use and throw, using HandsUp, the question can be revisited or reinforced.The solved question is sent back to the user to confirm the clarity of the student, until they are assured about their understanding.
+
+#### Why:
+
 > We feel that since the lockdown, the interaction between teachers and students has greatly reduced due to inefficiency of online classes.HandsUp will provide a platform for students to learn together, where student themselves will ask and answer academic questions along with sharing useful academic resources.
 
 > The web app does not require technical power, so it can be run on any device.Since Hands Up is a self driven community of students, it is easily scalable.
@@ -16,15 +18,14 @@
 
 > Reinforcement learning also helps to strengthen concepts and sharing resources with each other helps to develop sharing skills in young learners.Through the app, the core value of helping peers that will be beneficial to the students.
 
-
 ### Tech Stack
 
 uses a number of open source projects to work properly:
 
-* [Mongo DB] - Data Persistance!
-    * [FB's React] - Frontend Virtual DOM.
-        * [node.js] - evented I / O for the backend
-            * [Express] - fast node.js network app framework 
+- [Mongo DB] - Data Persistance!
+  - [FB's React] - Frontend Virtual DOM.
+    - [node.js] - evented I / O for the backend
+      - [Express] - fast node.js network app framework
 
 ### Installation
 
@@ -36,7 +37,7 @@ requires[Node.js](https://nodejs.org/) v4+ to run.
 $ git clone https://github.com/Nish7/HandsUp.git
 $ cd HandsUp
 $ npm i
-$ npm run dev 
+$ npm run dev
 ```
 
 For production environments...
@@ -45,7 +46,6 @@ For production environments...
 $ npm start
 ```
 
-
 Server Running on http:localhost:5000/
 Client Running on http:localhost:3000/
 
@@ -53,7 +53,8 @@ Client Running on http:localhost:3000/
 
 ![server](server.png)
 
-### User flow   
+### User flow
+
 ![userFlow]()
 
 ### Backend Development
@@ -122,7 +123,7 @@ Client Running on http:localhost:3000/
 ##### Question
 
 - [ ] questionId
-- [ ] topic 
+- [ ] topic
 - [ ] votes
 - [ ] subject
 - [ ] classId
@@ -137,5 +138,3 @@ Client Running on http:localhost:3000/
 - [ ] votes
 - [ ] text
 - [ ] userId
-
-
