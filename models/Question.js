@@ -12,10 +12,6 @@ const questionSchema = new mongoose.Schema({
     text: {
         type: String,
     },
-    votes: {
-        type: Number,
-        default: 0,
-    },
 	correctAnswer: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "User"
@@ -23,7 +19,7 @@ const questionSchema = new mongoose.Schema({
 	askedBy: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "User"
-	},
+    },
 	answers: [
         {type : mongoose.Schema.ObjectId, 
         ref : 'Answer'} 
@@ -31,10 +27,23 @@ const questionSchema = new mongoose.Schema({
     images: [
         {type: String} 
     ],
+    tags: [
+        {type: String} 
+    ],
     createdAt: {
 		type: Date,
 		default: Date.now,
-	},
+    },
+    upVotes : [ 
+        { type: mongoose.Schema.Types.ObjectId, 
+        ref: "User"}
+    ],
+    downVotes : [
+        { type: mongoose.Schema.Types.ObjectId, 
+        ref: "User"}
+    ],
+    voteScore : {type: Number,
+    default: 0}
 });
 
 module.exports = mongoose.model('Question', questionSchema);

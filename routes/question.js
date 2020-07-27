@@ -1,17 +1,31 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/Question');
-const { ensureAuth } = require('../middleware/auth');
+const User = require('../models/User');
+const { ensureAuth, ensureGuest } = require('../middleware/auth');
 const Question = require('../models/Question');
 const Answer = require('../models/Answer');
 var ObjectId = require('mongodb').ObjectID;
+const sanitizeHtml = require('sanitize-html');
 
 // GET /question display all questions
 router.get('/', async (req, res, next) => {
 	try {
-		const foundQuestion = await Question.find({});
-		console.log(foundQuestion);
-		res.render('question', { question: foundQuestion });
+		if (req.query.search) {
+			const regex = new RegExp(escapeRegex(req.query.search), 'gi');
+			const foundQuestion = await Question.find({ $or: [ {text: regex}, {topic: regex}  ] });
+			var noMatch;
+			if (foundQuestion.length < 1) {
+				noMatch = "Sorry no matching questions were found"
+			}
+			res.render('ques', { question: foundQuestion, noMatch: noMatch, currentUser: req.user });
+		}
+		else {
+			const foundQuestion = await Question.find({"correctAnswer" : null})
+			// .populate({
+			// 	path : 'askedBy',
+			// });
+			res.render('ques', { question: foundQuestion, currentUser: req.user });
+		}
 	} catch (err) {
 		console.log(err);
 		next(err);
@@ -19,20 +33,30 @@ router.get('/', async (req, res, next) => {
 });
 
 // Create question view route
-router.get('/create', (req, res, next) => {
-	res.render('newQuestion');
+router.get('/create', ensureAuth, (req, res, next) => {
+	res.render('newQuestion', {currentUser: req.user});
 });
 
 // POST /question/
-router.post('/', async (req, res, next) => {
-	console.log(req.body);
+router.post('/', ensureAuth, async (req, res, next) => {
 	try {
+		const MCEtext = sanitizeHtml(req.body.text, {
+			allowedTags: [],
+			allowedAttributes: {}
+		});
+		const tags = await req.body.tags.split(',');
 		const question = await Question.create({
 			topic: req.body.topic,
 			subject: req.body.subject,
-			text: req.body.text,
+			text: MCEtext,
 			askedBy: req.user.id,
+			tags: tags
 		});
+		await User.findOneAndUpdate(
+			{ _id: req.user.id },
+			{ $inc: { points: 10 } },
+			{ new: true },
+		);
 		res.redirect('/question');
 	} catch (err) {
 		console.log(err);
@@ -41,10 +65,10 @@ router.post('/', async (req, res, next) => {
 });
 
 // GET /question/id/answer
-router.get('/:id/answer', async (req, res, next) => {
+router.get('/:id/answer', ensureAuth, async (req, res, next) => {
 	try {
 		var question = await Question.findById(req.params.id);
-		res.render('newAnswer', { question: question });
+		res.render('newAnswer', { question: question, currentUser: req.user });
 	} catch (err) {
 		console.log(err);
 		next(err);
@@ -52,19 +76,28 @@ router.get('/:id/answer', async (req, res, next) => {
 });
 
 // POST /question/id/answer add answer to a question
-router.post('/:id/answer/', async (req, res, next) => {
+router.post('/:id/answer/', ensureAuth, async (req, res, next) => {
 	try {
+		const MCEtext = sanitizeHtml(req.body.text, {
+			allowedTags: [],
+			allowedAttributes: {}
+		});
 		var answer = await Answer.create({
-			text: req.body.text,
+			text: MCEtext,
 			answeredBy: req.user.id,
 		});
 		Question.findById(req.params.id, (err, question) => {
-			question.answers = question.answers || [];
-			question.answers.push(answer._id);
-			question.save(async (err, answeredQuestion) => {
-				const populatedQuestion = await answeredQuestion.populate('answers');
-				res.json({ populatedQuestion });
-			});
+			User.findOneAndUpdate(
+				{ _id: req.user.id },
+				{ $inc: { points: 20 } },
+				{ new: true },
+				async() => {
+					question.answers = question.answers || [];
+					question.answers.push(answer._id);
+					question.save(async (err, answeredQuestion) => {
+						res.redirect('/question/' + question._id )
+					});
+				});
 		});
 	} catch (err) {
 		console.log(err);
@@ -72,8 +105,32 @@ router.post('/:id/answer/', async (req, res, next) => {
 	}
 });
 
+// mark answer as correct
+router.post('/:questionid/:answerid/correct', ensureAuth, async(req, res) => {
+	try {
+		const question = await Question.findById(req.params.questionid)
+		const answer = await Answer.findById(req.params.answerid)
+		if (question.askedBy = req.user.id) {
+			await User.findOneAndUpdate(
+				{ _id: answer.answeredBy },
+				{ $inc: { points: 50 } },
+				{ new: true },
+			);
+			question.correctAnswer = answer._id;
+			question.save();
+			res.redirect('/question')
+		}
+		else {
+			res.redirect('/question')
+		}
+	} catch(err) {
+		console.log(err);
+		next(err);	
+	}
+})
+
 // GET /question/:id for specific question
-router.get('/:id', async (req, res) => {
+router.get('/:id', ensureAuth, async (req, res) => {
 	try {
 		const question = await Question.findById(req.params.id).populate({
             path : 'answers',
@@ -81,7 +138,7 @@ router.get('/:id', async (req, res) => {
                 path : 'answeredBy'
             }
         })
-		res.render('specificQuestion', { question });
+		res.render('specificQuestion', { question: question, currentUser: req.user });
 		console.log(question)
 	} catch (err) {
 		console.log(err);
@@ -91,7 +148,7 @@ router.get('/:id', async (req, res) => {
 
 
 // POST /question/:id/update for specific question
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', ensureAuth, async (req, res, next) => {
 	try {
 		const updatedQuestion = await Question.findOneAndUpdate(
 			{ _id: req.params.id },
@@ -111,7 +168,7 @@ router.put('/:id', async (req, res, next) => {
 });
 
 // POST /question/:id/delete delete specific question
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', ensureAuth, async (req, res) => {
 	try {
 		await Question.findById(
 			req.params.id,
@@ -133,7 +190,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // GET /question/:id for specific question
-router.get('/:id', async (req, res) => {
+router.get('/:id', ensureAuth, async (req, res) => {
 	try {
 		const question = await Question.findById(req.params.id).populate({
 			path: 'answers',
@@ -141,11 +198,14 @@ router.get('/:id', async (req, res) => {
 				path: 'answeredBy',
 			},
 		});
-		res.render('question', { question });
+		res.render('question', { question, currentUser: req.user });
 	} catch (err) {
 		console.log(err);
 		next(err);
 	}
 });
 
+function escapeRegex(text) {
+    return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+};
 module.exports = router;
